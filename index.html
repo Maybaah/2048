@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <title>2048 Online Free: Slide &amp; Merge Number Puzzle | Maybaah's Arcade</title>
+  <meta name="description" content="Play 2048 free in your browser: slide the tiles, merge matching numbers and reach 2048. Keyboard or swipe, no ads, no sign-up, and every finished run is verified for the global leaderboard." />
+  <meta name="author" content="Artem Kovtoniuk" />
+  <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1" />
+  <link rel="canonical" href="https://maybaah.github.io/2048/" />
+  <meta name="theme-color" content="#0a0a0a" />
+
+  <!-- Open Graph -->
+  <meta property="og:site_name" content="maybaah.github.io" />
+  <meta property="og:title" content="2048 | Slide &amp; Merge Puzzle | Maybaah's Arcade" />
+  <meta property="og:description" content="Slide the tiles, merge the numbers, reach 2048. Free, no ads, verified global leaderboard." />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://maybaah.github.io/2048/" />
+  <meta property="og:image" content="https://maybaah.github.io/assets/og.png" />
+
+  <!-- Twitter -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="2048 | Slide &amp; Merge Puzzle | Maybaah's Arcade" />
+  <meta name="twitter:description" content="Slide the tiles, merge the numbers, reach 2048. Free, no ads, verified global leaderboard." />
+  <meta name="twitter:image" content="https://maybaah.github.io/assets/og.png" />
+
+  <!-- Icons -->
+  <link rel="icon" type="image/svg+xml" href="/assets/favicon.svg" />
+  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+
+  <link rel="stylesheet" href="/assets/site.css" />
+
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "VideoGame",
+    "name": "2048 | Maybaah's Arcade",
+    "url": "https://maybaah.github.io/2048/",
+    "description": "Free browser 2048: slide the tiles, merge matching numbers and reach 2048. Seeded runs are replay-verified for a global leaderboard.",
+    "genre": "Puzzle game",
+    "gamePlatform": "Web browser",
+    "operatingSystem": "Any",
+    "applicationCategory": "Game",
+    "author": { "@type": "Person", "name": "Artem Kovtoniuk" },
+    "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" }
+  }
+  </script>
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://maybaah.github.io/" },
+      { "@type": "ListItem", "position": 2, "name": "Arcade", "item": "https://maybaah.github.io/arcade/" },
+      { "@type": "ListItem", "position": 3, "name": "2048", "item": "https://maybaah.github.io/2048/" }
+    ]
+  }
+  </script>
+
+  <style>
+    .game-wrap { max-width: 520px; margin-inline: auto; padding-inline: 24px; }
+    .game-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-top: 40px; }
+
+    .score-row { display: flex; gap: 10px; }
+    .score-box {
+      background: var(--bg-surface); border: 1px solid var(--border); border-radius: 8px;
+      padding: 8px 16px; text-align: center; min-width: 88px;
+    }
+    .score-box label {
+      display: block; font-family: var(--font-mono); font-size: 10px; text-transform: uppercase;
+      letter-spacing: 0.14em; color: var(--text-muted);
+    }
+    .score-box span { font-family: var(--font-mono); font-size: 20px; font-weight: 600; }
+    .score-box .gain {
+      position: absolute; font-family: var(--font-mono); font-size: 14px; color: var(--success);
+      animation: rise 700ms ease forwards; pointer-events: none;
+    }
+    @keyframes rise {
+      from { opacity: 1; transform: translateY(0); }
+      to { opacity: 0; transform: translateY(-22px); }
+    }
+
+    #board {
+      --cell: clamp(58px, 17vw, 96px);
+      --gap: 10px;
+      position: relative;
+      width: calc(4 * var(--cell) + 5 * var(--gap));
+      height: calc(4 * var(--cell) + 5 * var(--gap));
+      margin: 24px auto 0;
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: var(--gap);
+      touch-action: none;
+    }
+    .slot {
+      position: absolute; width: var(--cell); height: var(--cell);
+      border-radius: 8px; background: var(--bg-elevated);
+    }
+    .tile {
+      position: absolute; width: var(--cell); height: var(--cell);
+      display: flex; align-items: center; justify-content: center;
+      border-radius: 8px;
+      font-family: var(--font-mono); font-weight: 600;
+      font-size: calc(var(--cell) * 0.36);
+      background: #2f2f2f; color: var(--text-primary);
+      transition: transform 110ms ease-in-out;
+      will-change: transform;
+    }
+    .tile.pop { animation: pop 150ms ease; }
+    .tile.born { animation: born 150ms ease; }
+    @keyframes pop { 0% { transform: var(--pos) scale(1); } 50% { transform: var(--pos) scale(1.12); } 100% { transform: var(--pos) scale(1); } }
+    @keyframes born { from { transform: var(--pos) scale(0.3); opacity: 0; } to { transform: var(--pos) scale(1); opacity: 1; } }
+
+    /* value ramp: dark to bright, gold past 1024 */
+    .v2    { background: #232323; color: var(--text-secondary); }
+    .v4    { background: #2b2b2b; color: var(--text-secondary); }
+    .v8    { background: #3a3a3a; }
+    .v16   { background: #4a4a4a; }
+    .v32   { background: #5c5c5c; }
+    .v64   { background: #707070; color: #0a0a0a; }
+    .v128  { background: #8a8a8a; color: #0a0a0a; font-size: calc(var(--cell) * 0.31); }
+    .v256  { background: #a5a5a5; color: #0a0a0a; font-size: calc(var(--cell) * 0.31); }
+    .v512  { background: #c4c4c4; color: #0a0a0a; font-size: calc(var(--cell) * 0.31); }
+    .v1024 { background: #e0b341; color: #0a0a0a; font-size: calc(var(--cell) * 0.26); }
+    .v2048 { background: var(--warning); color: #0a0a0a; font-size: calc(var(--cell) * 0.26); }
+    .vbig  { background: #fff3c4; color: #0a0a0a; font-size: calc(var(--cell) * 0.24); }
+
+    #overlay {
+      position: absolute; inset: 0; z-index: 5;
+      display: none; flex-direction: column; align-items: center; justify-content: center; gap: 14px;
+      background: rgba(10, 10, 10, 0.82); border-radius: var(--radius-lg);
+      backdrop-filter: blur(2px);
+    }
+    #overlay.show { display: flex; }
+    #overlay h2 { font-family: var(--font-mono); font-size: 22px; }
+    #overlay p { font-family: var(--font-mono); font-size: 12px; color: var(--text-secondary); }
+
+    .statusline { display: flex; gap: 16px; margin-top: 20px; font-family: var(--font-mono); font-size: 11px; color: var(--text-muted); flex-wrap: wrap; }
+    .statusline b { color: var(--text-secondary); font-weight: 500; }
+    .toolbar { display: flex; gap: 8px; margin-top: 20px; flex-wrap: wrap; }
+    @media (prefers-reduced-motion: reduce) {
+      .tile { transition: none; }
+      .tile.pop, .tile.born { animation: none; }
+    }
+  </style>
+</head>
+
+<body>
+<nav class="site-nav" aria-label="Main">
+  <div class="container">
+    <a class="wordmark" href="/">maybaah<span class="tld">.github.io</span></a>
+    <div class="nav-links">
+      <a href="/arcade/">← Arcade</a>
+      <a href="/leaderboard/">Leaderboard</a>
+    </div>
+  </div>
+</nav>
+
+<main>
+  <div class="game-wrap">
+    <div class="game-head">
+      <div>
+        <p class="eyebrow">Cabinet 04</p>
+        <h1 style="font-size: 28px; margin-top: 6px;">2048</h1>
+      </div>
+      <div class="score-row">
+        <div class="score-box" style="position: relative;">
+          <label>score</label>
+          <span id="s-score">0</span>
+          <div id="gain-slot" style="position: absolute; left: 50%; top: 4px;"></div>
+        </div>
+        <div class="score-box">
+          <label>best</label>
+          <span id="s-best">0</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="statusline">
+      <span>moves <b id="s-moves">0</b></span>
+      <span>top tile <b id="s-top">2</b></span>
+      <span>arrows, WASD or swipe</span>
+    </div>
+
+    <div id="board" aria-label="2048 board">
+      <div id="overlay" role="status" aria-live="polite">
+        <h2 id="ov-title">game over</h2>
+        <p id="ov-sub"></p>
+        <button class="btn btn-primary btn-sm" id="ov-again">New game</button>
+      </div>
+    </div>
+
+    <div id="submit-run" style="display: none; margin-top: 20px; gap: 8px; align-items: center; flex-wrap: wrap;">
+      <input id="run-name" maxlength="16" placeholder="your name" autocomplete="nickname" spellcheck="false"
+             style="background: var(--bg-surface); border: 1px solid var(--border); border-radius: 8px;
+                    color: var(--text-primary); font-family: var(--font-mono); font-size: 13px;
+                    padding: 7px 12px; width: 150px;" />
+      <button class="btn btn-primary btn-sm" id="btn-submit-run">Submit run</button>
+      <span class="mono" id="run-status" style="font-size: 11px; color: var(--text-secondary);"></span>
+    </div>
+
+    <div class="toolbar">
+      <button class="btn btn-secondary btn-sm" id="btn-new">New game</button>
+      <a class="btn btn-secondary btn-sm" href="/leaderboard/">Leaderboard</a>
+    </div>
+
+    <p style="margin-top: 32px; font-size: 13px; color: var(--text-muted); line-height: 1.7;">
+      Slide every tile with the arrow keys, WASD or a swipe. Two tiles of the same
+      number merge into their sum and add it to your score. A new tile appears after
+      each move, so the board fills up while you chase 2048 and keep going past it.
+      Every spawn comes from a seeded generator and every move is recorded, so a
+      finished run is replayed server-side before it reaches the
+      <a href="/leaderboard/" style="text-decoration: underline;">global leaderboard</a>.
+    </p>
+  </div>
+</main>
+
+<footer class="site-footer">
+  <div class="container">
+    <span>© 2026 Artem Kovtoniuk</span>
+    <div class="links">
+      <a href="/arcade/">arcade</a>
+      <a href="/leaderboard/">leaderboard</a>
+      <a href="https://github.com/Maybaah/2048">source</a>
+    </div>
+  </div>
+</footer>
+
+<script src="/assets/arcade.js"></script>
+<script src="game.js"></script>
+</body>
+</html>
