@@ -86,25 +86,29 @@
       to { opacity: 0; transform: translateY(-22px); }
     }
 
+    /* Slots and tiles are placed from the padding box by transform alone, so
+       the board carries no padding of its own: the leading gap is part of
+       every offset, and the 2px covers the 1px border on each side. */
     #board {
       --cell: clamp(58px, 17vw, 96px);
       --gap: 10px;
       position: relative;
-      width: calc(4 * var(--cell) + 5 * var(--gap));
-      height: calc(4 * var(--cell) + 5 * var(--gap));
+      width: calc(4 * var(--cell) + 5 * var(--gap) + 2px);
+      height: calc(4 * var(--cell) + 5 * var(--gap) + 2px);
       margin: 24px auto 0;
       background: var(--bg-surface);
       border: 1px solid var(--border);
       border-radius: var(--radius-lg);
-      padding: var(--gap);
       touch-action: none;
     }
     .slot {
-      position: absolute; width: var(--cell); height: var(--cell);
+      position: absolute; left: 0; top: 0;
+      width: var(--cell); height: var(--cell);
       border-radius: 8px; background: var(--bg-elevated);
     }
     .tile {
-      position: absolute; width: var(--cell); height: var(--cell);
+      position: absolute; left: 0; top: 0;
+      width: var(--cell); height: var(--cell);
       display: flex; align-items: center; justify-content: center;
       border-radius: 8px;
       font-family: var(--font-mono); font-weight: 600;

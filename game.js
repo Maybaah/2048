@@ -111,10 +111,14 @@
     delete tiles[tile.id];
   }
 
+  /* The class is dropped and re-added on the next frame so a tile that merges
+     twice in a row plays the pop both times. */
   function setTileValue(tile, v) {
     tile.v = v;
     tile.el.textContent = v;
-    tile.el.className = "tile " + valueClass(v) + " pop";
+    tile.el.className = "tile " + valueClass(v);
+    var el = tile.el;
+    requestAnimationFrame(function () { el.classList.add("pop"); });
   }
 
   /* spawn: empty slots in ascending index order, cell drawn first, then value */
@@ -348,6 +352,10 @@
     if (Math.abs(dx) < 24 && Math.abs(dy) < 24) return;
     move(Math.abs(dx) > Math.abs(dy) ? (dx > 0 ? "r" : "l") : (dy > 0 ? "d" : "u"));
   }, { passive: true });
+
+  board.addEventListener("animationend", function (e) {
+    e.target.classList.remove("pop", "born");
+  });
 
   document.getElementById("btn-new").addEventListener("click", newGame);
   document.getElementById("ov-again").addEventListener("click", function () {
