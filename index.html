@@ -215,6 +215,8 @@
       <a class="btn btn-secondary btn-sm" href="/leaderboard/">Leaderboard</a>
     </div>
 
+    <section class="board-embed" id="board-embed" aria-label="Global leaderboard"></section>
+
     <p style="margin-top: 32px; font-size: 13px; color: var(--text-muted); line-height: 1.7;">
       Slide every tile with the arrow keys, WASD or a swipe. Two tiles of the same
       number merge into their sum and add it to your score. A new tile appears after
@@ -239,5 +241,10 @@
 
 <script src="/assets/arcade.js"></script>
 <script src="game.js"></script>
+<script>
+  Arcade.mountBoard(document.getElementById("board-embed"), {
+    game: "2048", title: "Global board", limit: 10, selfLink: false
+  });
+</script>
 </body>
 </html>
