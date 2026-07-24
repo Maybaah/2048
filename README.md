@@ -24,6 +24,16 @@ The value-level rules here (slide order, merge order, spawn choice) are
 mirrored in the Worker, so `game.js` and `worker/src/index.js` in the site repo
 have to stay in step.
 
+## One undo
+
+A run gets one step back, on the **Undo** button or the `Z` key, and only while
+the board is still alive. Nothing here can rewind the generator, so the undo
+drops the last letter of the tape and replays the run from its own seed. What
+is left is a real prefix of the tape that was already there, which is exactly
+what the Worker replays, so an undone run stays verifiable and lands on the
+board like any other.
+
 - 4x4 grid, new tile is 2 (90%) or 4 (10%)
 - Arrow keys, WASD, or swipe on touch
 - Local run history lives in `localStorage` and feeds the arcade hub card
+- A finished run pays arcade coins, spendable in [`/shop/`](https://maybaah.github.io/shop/)

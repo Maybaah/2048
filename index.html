@@ -122,9 +122,11 @@
     @keyframes pop { 0% { transform: var(--pos) scale(1); } 50% { transform: var(--pos) scale(1.12); } 100% { transform: var(--pos) scale(1); } }
     @keyframes born { from { transform: var(--pos) scale(0.3); opacity: 0; } to { transform: var(--pos) scale(1); opacity: 1; } }
 
-    /* value ramp: dark to bright, gold past 1024 */
-    .v2    { background: #232323; color: var(--text-secondary); }
-    .v4    { background: #2b2b2b; color: var(--text-secondary); }
+    /* value ramp: dark to bright, gold past 1024. The board keeps its own dark
+       palette under every site theme, so the low tiles name their grey rather
+       than borrowing a token that goes dark on a light theme. */
+    .v2    { background: #232323; color: #adadad; }
+    .v4    { background: #2b2b2b; color: #c6c6c6; }
     .v8    { background: #3a3a3a; }
     .v16   { background: #4a4a4a; }
     .v32   { background: #5c5c5c; }
@@ -143,8 +145,8 @@
       backdrop-filter: blur(2px);
     }
     #overlay.show { display: flex; }
-    #overlay h2 { font-family: var(--font-mono); font-size: 22px; }
-    #overlay p { font-family: var(--font-mono); font-size: 12px; color: var(--text-secondary); }
+    #overlay h2 { font-family: var(--font-mono); font-size: 22px; color: #f0f0f0; }
+    #overlay p { font-family: var(--font-mono); font-size: 12px; color: #a8a8a8; }
 
     .statusline { display: flex; gap: 16px; margin-top: 20px; font-family: var(--font-mono); font-size: 11px; color: var(--text-muted); flex-wrap: wrap; }
     .statusline b { color: var(--text-secondary); font-weight: 500; }
@@ -190,7 +192,7 @@
     <div class="statusline">
       <span>moves <b id="s-moves">0</b></span>
       <span>top tile <b id="s-top">2</b></span>
-      <span>arrows, WASD or swipe</span>
+      <span>arrows, WASD or swipe · Z takes one move back</span>
     </div>
 
     <div id="board" aria-label="2048 board">
@@ -212,6 +214,7 @@
 
     <div class="toolbar">
       <button class="btn btn-secondary btn-sm" id="btn-new">New game</button>
+      <button class="btn btn-secondary btn-sm" id="btn-undo" title="one move back, once per run">Undo (1)</button>
       <a class="btn btn-secondary btn-sm" href="/leaderboard/">Leaderboard</a>
     </div>
 

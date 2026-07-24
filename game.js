@@ -12,6 +12,7 @@
   var MAX_MOVES = 20000;
   var DIRS = ["u", "r", "d", "l"];
   var ANIM_MS = 110;
+  var UNDOS = 1;
 
   /* must match the worker's copy exactly */
   function mulberry32(a) {
@@ -57,7 +58,7 @@
   var seed;
   var moveLog;
   var score, best, moveCount, topTile;
-  var over, won;
+  var over, won, undosLeft;
   var pending = null, settleTimer = null;
 
   var board = document.getElementById("board");
@@ -66,6 +67,7 @@
   var elBest = document.getElementById("s-best");
   var elMoves = document.getElementById("s-moves");
   var elTop = document.getElementById("s-top");
+  var elUndo = document.getElementById("btn-undo");
 
   function posStyle(r, c) {
     return "translate(calc(var(--gap) + " + c + " * (var(--cell) + var(--gap))), " +
@@ -113,10 +115,11 @@
 
   /* The class is dropped and re-added on the next frame so a tile that merges
      twice in a row plays the pop both times. */
-  function setTileValue(tile, v) {
+  function setTileValue(tile, v, quiet) {
     tile.v = v;
     tile.el.textContent = v;
     tile.el.className = "tile " + valueClass(v);
+    if (quiet) return;
     var el = tile.el;
     requestAnimationFrame(function () { el.classList.add("pop"); });
   }
@@ -177,17 +180,21 @@
   /* Swap merged tiles for their sum, drop the absorbed ones and bring in the
      new tile. Runs when the slide animation ends, or straight away if the
      player is already sliding the next move. */
+  function applyPlan(plan, quiet) {
+    for (var i = 0; i < plan.length; i++) {
+      var step = plan[i];
+      if (step.absorbed) dropTile(step.tile);
+      else if (step.becomes) setTileValue(step.tile, step.becomes, quiet);
+    }
+  }
+
   function settle() {
     if (!pending) return;
     var plan = pending.plan;
     pending = null;
     clearTimeout(settleTimer);
 
-    for (var i = 0; i < plan.length; i++) {
-      var step = plan[i];
-      if (step.absorbed) dropTile(step.tile);
-      else if (step.becomes) setTileValue(step.tile, step.becomes);
-    }
+    applyPlan(plan);
     spawn(true);
     topTile = highestTile();
     refreshStats();
@@ -231,6 +238,52 @@
     elTop.textContent = topTile;
     if (score > best) best = score;
     elBest.textContent = best;
+    refreshUndo();
+  }
+
+  function refreshUndo() {
+    elUndo.textContent = undosLeft > 0 ? "Undo (" + undosLeft + ")" : "Undo used";
+    elUndo.disabled = over || undosLeft <= 0 || !moveLog.length;
+  }
+
+  /* ── the one step back ──
+     Nothing here can rewind the generator, so an undo replays the run from its
+     own seed with the last move dropped. The tape stays a prefix of the tape
+     that was already there, which is exactly what the Worker replays, so the
+     board a player lands on is the board the Worker would compute. One per
+     run, and only while the run is still going: a jammed board has already
+     been scored. */
+  function rebuild(tape) {
+    board.querySelectorAll(".tile").forEach(function (el) { el.remove(); });
+    grid = new Array(N).fill(null);
+    tiles = {};
+    nextId = 1;
+    rnd = mulberry32(seed >>> 0);
+    score = 0;
+    moveCount = 0;
+    moveLog = "";
+    spawn(false);
+    spawn(false);
+
+    for (var i = 0; i < tape.length; i++) {
+      var res = applyMove(tape[i]);
+      if (!res) break;
+      applyPlan(res.plan, true);
+      score += res.gained;
+      moveCount++;
+      moveLog += tape[i];
+      spawn(false);
+    }
+
+    topTile = highestTile();
+    refreshStats();
+  }
+
+  function undo() {
+    settle();
+    if (over || undosLeft <= 0 || !moveLog.length) return;
+    undosLeft--;
+    rebuild(moveLog.slice(0, -1));
   }
 
   function move(dir) {
@@ -258,6 +311,7 @@
 
   function endRun() {
     over = true;
+    refreshUndo();
     showOverlay("game over", "no moves left. score " + score + ".", "New game");
     Arcade.addScore("2048", { points: score, maxTile: topTile, moves: moveCount });
     showSubmitUI();
@@ -306,6 +360,7 @@
     moveLog = "";
     score = 0; moveCount = 0;
     over = false; won = false;
+    undosLeft = UNDOS;
     clearTimeout(settleTimer);
     pending = null;
     overlay.classList.remove("show");
@@ -339,6 +394,11 @@
   document.addEventListener("keydown", function (e) {
     if (e.ctrlKey || e.metaKey || e.altKey) return;
     if (e.target && (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA")) return;
+    if (e.code === "KeyZ" || e.key === "z" || e.key === "Z") {
+      e.preventDefault();
+      undo();
+      return;
+    }
     var dir = KEYS[e.key] || CODES[e.code];
     if (!dir) return;
     e.preventDefault();
@@ -364,6 +424,7 @@
   });
 
   document.getElementById("btn-new").addEventListener("click", newGame);
+  elUndo.addEventListener("click", undo);
   document.getElementById("ov-again").addEventListener("click", function () {
     if (over) newGame();
     else overlay.classList.remove("show");
@@ -381,10 +442,11 @@
   window.__2048 = {
     move: move,
     settle: settle,
+    undo: undo,
     state: function () {
       return {
         seed: seed, moves: moveLog, score: score, top: topTile,
-        over: over, grid: grid.map(function (t) { return t ? t.v : 0; })
+        over: over, undos: undosLeft, grid: grid.map(function (t) { return t ? t.v : 0; })
       };
     },
     dirs: DIRS
