@@ -330,10 +330,16 @@
     w: "u", d: "r", s: "d", a: "l", W: "u", D: "r", S: "d", A: "l"
   };
 
+  // physical key positions, so WASD works on any keyboard layout
+  var CODES = {
+    ArrowUp: "u", ArrowRight: "r", ArrowDown: "d", ArrowLeft: "l",
+    KeyW: "u", KeyD: "r", KeyS: "d", KeyA: "l"
+  };
+
   document.addEventListener("keydown", function (e) {
     if (e.ctrlKey || e.metaKey || e.altKey) return;
     if (e.target && (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA")) return;
-    var dir = KEYS[e.key];
+    var dir = KEYS[e.key] || CODES[e.code];
     if (!dir) return;
     e.preventDefault();
     move(dir);
