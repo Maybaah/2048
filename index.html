@@ -9,7 +9,7 @@
   <meta name="author" content="Artem Kovtoniuk" />
   <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1" />
   <link rel="canonical" href="https://maybaah.github.io/2048/" />
-  <meta name="theme-color" content="#0a0a0a" />
+  <meta name="theme-color" content="#09090b" />
 
   <!-- Open Graph -->
   <meta property="og:site_name" content="maybaah.github.io" />
@@ -32,7 +32,7 @@
   <!-- Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400..700&family=Geist+Mono:wght@400..700&display=swap" rel="stylesheet" />
 
   <link rel="stylesheet" href="/assets/site.css" />
 
@@ -91,16 +91,16 @@
     .slot {
       position: absolute; left: 0; top: 0;
       width: var(--cell); height: var(--cell);
-      border-radius: 8px; background: var(--bg-elevated);
+      border-radius: var(--radius-md); background: var(--bg-elevated);
     }
     .tile {
       position: absolute; left: 0; top: 0;
       width: var(--cell); height: var(--cell);
       display: flex; align-items: center; justify-content: center;
-      border-radius: 8px;
+      border-radius: var(--radius-md);
       font-family: var(--font-mono); font-weight: 600;
       font-size: calc(var(--cell) * 0.36);
-      background: #2f2f2f; color: var(--text-primary);
+      background: #2f2f35; color: var(--text-primary);
       transition: transform 110ms ease-in-out;
       will-change: transform;
     }
@@ -112,28 +112,19 @@
     /* value ramp: dark to bright, gold past 1024. The board keeps its own dark
        palette under every site theme, so the low tiles name their grey rather
        than borrowing a token that goes dark on a light theme. */
-    .v2    { background: #232323; color: #adadad; }
-    .v4    { background: #2b2b2b; color: #c6c6c6; }
-    .v8    { background: #3a3a3a; }
-    .v16   { background: #4a4a4a; }
-    .v32   { background: #5c5c5c; }
-    .v64   { background: #707070; color: #0a0a0a; }
-    .v128  { background: #8a8a8a; color: #0a0a0a; font-size: calc(var(--cell) * 0.31); }
-    .v256  { background: #a5a5a5; color: #0a0a0a; font-size: calc(var(--cell) * 0.31); }
-    .v512  { background: #c4c4c4; color: #0a0a0a; font-size: calc(var(--cell) * 0.31); }
-    .v1024 { background: #e0b341; color: #0a0a0a; font-size: calc(var(--cell) * 0.26); }
-    .v2048 { background: var(--warning); color: #0a0a0a; font-size: calc(var(--cell) * 0.26); }
-    .vbig  { background: #fff3c4; color: #0a0a0a; font-size: calc(var(--cell) * 0.24); }
+    .v2    { background: #232326; color: #a1a1aa; }
+    .v4    { background: #2b2b30; color: #c8c8ce; }
+    .v8    { background: #3a3a41; }
+    .v16   { background: #4a4a52; }
+    .v32   { background: #5c5c65; }
+    .v64   { background: #70707a; color: #09090b; }
+    .v128  { background: #8a8a94; color: #09090b; font-size: calc(var(--cell) * 0.31); }
+    .v256  { background: #a5a5ad; color: #09090b; font-size: calc(var(--cell) * 0.31); }
+    .v512  { background: #c4c4ca; color: #09090b; font-size: calc(var(--cell) * 0.31); }
+    .v1024 { background: #e0b341; color: #09090b; font-size: calc(var(--cell) * 0.26); }
+    .v2048 { background: var(--warning); color: #09090b; font-size: calc(var(--cell) * 0.26); }
+    .vbig  { background: #fff3c4; color: #09090b; font-size: calc(var(--cell) * 0.24); }
 
-    #overlay {
-      position: absolute; inset: 0; z-index: 5;
-      display: none; flex-direction: column; align-items: center; justify-content: center; gap: 14px;
-      background: rgba(10, 10, 10, 0.82); border-radius: var(--radius-lg);
-      backdrop-filter: blur(2px);
-    }
-    #overlay.show { display: flex; }
-    #overlay h2 { font-family: var(--font-mono); font-size: 22px; color: #f0f0f0; }
-    #overlay p { font-family: var(--font-mono); font-size: 12px; color: #a8a8a8; }
 
     @media (prefers-reduced-motion: reduce) {
       .tile { transition: none; }
@@ -181,9 +172,11 @@
 
     <div id="board" aria-label="2048 board">
       <div id="overlay" role="status" aria-live="polite">
-        <h2 id="ov-title">game over</h2>
-        <p id="ov-sub"></p>
-        <button class="btn btn-primary btn-sm" id="ov-again">New game</button>
+        <div class="overlay-panel">
+          <h2 id="ov-title">game over</h2>
+          <p id="ov-sub"></p>
+          <button class="btn btn-primary btn-sm" id="ov-again">New game</button>
+        </div>
       </div>
     </div>
 
@@ -202,7 +195,7 @@
 
     <section class="board-embed" id="board-embed" aria-label="Global leaderboard"></section>
 
-    <p style="margin-top: 32px; font-size: 13px; color: var(--text-muted); line-height: 1.7;">
+    <p style="margin-top: 32px; font-size: 13px; color: var(--text-secondary); line-height: 1.7;">
       Slide every tile with the arrow keys, WASD or a swipe. Two tiles of the same
       number merge into their sum and add it to your score. A new tile appears after
       each move, so the board fills up while you chase 2048 and keep going past it.
