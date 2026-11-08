@@ -201,7 +201,7 @@
 
     if (!won && topTile >= 2048) {
       won = true;
-      showOverlay("2048 reached", "score " + score + ". keep going for a bigger tile.", "Keep going");
+      showOverlay("2048 reached", "Score " + score + ". Keep going for a bigger tile.", "Keep going");
     } else if (!movesLeft()) {
       endRun();
     }
@@ -312,7 +312,7 @@
   function endRun() {
     over = true;
     refreshUndo();
-    showOverlay("game over", "no moves left. score " + score + ".", "New game");
+    showOverlay("Game over", "No moves left. Score " + score + ".", "New game");
     Arcade.addScore("2048", { points: score, maxTile: topTile, moves: moveCount });
     showSubmitUI();
   }
